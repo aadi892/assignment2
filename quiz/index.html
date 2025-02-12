@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .options li:hover, .options li.selected {
+            background-color: #cce5ff;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .scorecard {
+            display: none;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Quiz Application</h1>
+    <div id="quiz"></div>
+    <button class="btn" id="nextBtn" disabled>Next</button>
+    <div id="scorecard" class="scorecard">
+        <h2>Your Score: <span id="score"></span> / 10</h2>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Your Answer</th>
+                    <th>Correct Answer</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+        </table>
+        <button class="btn" onclick="reloadQuiz()">Retake Quiz</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { question: "What is the capital of India?", options: ["Delhi", "Manali", "Chennai", "Mumbai"], answer: "Delhi" },
+        { question: "Who is the god of cricket?", options: ["Sachin Tendulkar", "Pat Cummins", "Virat Kohli", "MS Dhoni"], answer: "Sachin Tendulkar" },
+        { question: "What is the largest planet in our solar system?", options: ["Earth", "Jupiter", "Saturn", "Mars"], answer: "Jupiter" },
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+
+    function displayQuestion() {
+        const questionData = questions[currentQuestionIndex];
+        const quizContainer = document.getElementById("quiz");
+        quizContainer.innerHTML = `<div class='question'>${questionData.question}</div>`;
+
+        const optionsList = document.createElement("ul");
+        optionsList.classList.add("options");
+
+        questionData.options.forEach(option => {
+            const optionItem = document.createElement("li");
+            optionItem.textContent = option;
+            optionItem.onclick = () => selectAnswer(optionItem, option);
+            optionsList.appendChild(optionItem);
+        });
+
+        quizContainer.appendChild(optionsList);
+    }
+
+    function selectAnswer(element, selectedAnswer) {
+        document.querySelectorAll(".options li").forEach(li => li.classList.remove("selected"));
+        element.classList.add("selected");
+        userAnswers[currentQuestionIndex] = selectedAnswer;
+        document.getElementById("nextBtn").disabled = false;
+    }
+
+    function nextQuestion() {
+        if (userAnswers[currentQuestionIndex] === questions[currentQuestionIndex].answer) {
+            score++;
+        }
+
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            displayQuestion();
+            document.getElementById("nextBtn").disabled = true;
+        } else {
+            showScorecard();
+        }
+    }
+
+    function showScorecard() {
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementById("score").textContent = score;
+
+        const resultBody = document.getElementById("resultBody");
+        resultBody.innerHTML = "";
+
+        questions.forEach((question, index) => {
+            const userAnswer = userAnswers[index] || "Not Answered";
+            const isCorrect = userAnswer === question.answer ? "correct" : "incorrect";
+
+            resultBody.innerHTML += `
+                <tr>
+                    <td>${question.question}</td>
+                    <td class="${isCorrect}">${userAnswer}</td>
+                    <td class="correct">${question.answer}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("scorecard").style.display = "block";
+    }
+
+    function reloadQuiz() {
+        score = 0;
+        currentQuestionIndex = 0;
+        userAnswers = [];
+        document.getElementById("scorecard").style.display = "none";
+        document.getElementById("quiz").style.display = "block";
+        document.getElementById("nextBtn").style.display = "inline-block";
+        document.getElementById("nextBtn").disabled = true;
+        displayQuestion();
+    }
+
+    displayQuestion();
+    document.getElementById("nextBtn").onclick = nextQuestion;
+</script>
+
+</body>
+</html>
