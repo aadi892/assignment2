@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do App</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 10px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>To-Do List</h2>
+        <input type="text" id="title" placeholder="Task Title">
+        <input type="date" id="start">
+        <input type="date" id="end">
+        <input type="checkbox" id="complete"> Completed
+        <button onclick="addTodo()">Add</button>
+        <ul id="todoList"></ul>
+    </div>
+
+    <script>
+        async function fetchTodos() {
+            const res = await fetch('/todos');
+            const todos = await res.json();
+            document.getElementById('todoList').innerHTML = todos.map((todo, index) => `
+                <li>
+                    ${todo.title} ( ${todo.start} - ${todo.end} )
+                    <input type="checkbox" ${todo.complete ? 'checked' : ''}>
+                    <button onclick="deleteTodo(${index})">Delete</button>
+                </li>
+            `).join('');
+        }
+
+        async function addTodo() {
+            const title = document.getElementById('title').value;
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+            const complete = document.getElementById('complete').checked;
+            await fetch('/todos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, start, end, complete })
+            });
+            fetchTodos();
+        }
+
+        async function deleteTodo(id) {
+            await fetch(`/todos/${id}`, { method: 'DELETE' });
+            fetchTodos();
+        }
+
+        fetchTodos();
+    </script>
+</body>
+</html>
